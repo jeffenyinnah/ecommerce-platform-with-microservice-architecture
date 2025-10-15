@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # Postgres
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  # Auth Service
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "4003:4003"
+    environment:
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4003/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+    env_file:
+      - .env
+  # Payment Service
+  payment:
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "4000:4000"
+    environment:
+      # M-Pesa Configuration
+      - MPESA_API_HOST=${MPESA_API_HOST:-api.sandbox.vm.co.mz}
+      - MPESA_BEARER_TOKEN=${MPESA_BEARER_TOKEN}
+      - MPESA_SERVICE_PROVIDER_CODE=${MPESA_SERVICE_PROVIDER_CODE:-171717}
+      
+      # Service URLs
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order:4001}
+      - EMAIL_SERVICE_URL=${EMAIL_SERVICE_URL:-http://email:4002}
+      
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+      
+      # Server
+      - PORT=4000
+      - NODE_ENV=production
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    env_file:
+      - .env
+  # Order Service
+  order:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "4001:4001"
+    environment:
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      
+      # Server
+      - PORT=4001
+      - NODE_ENV=production
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+    env_file:
+      - .env
+  # Email Service
+  email:
+    build:
+      context: ./email
+      dockerfile: Dockerfile
+    container_name: email-service
+    ports:
+      - "4002:4002"
+    environment:
+      # Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+    env_file:
+      - .env
+  # Next.js Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: nextjs-client
+    ports:
+      - "3000:3000"
+    environment:
+      # API URLs for client-side requests (these are accessed from browser)
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-http://localhost:4003}
+      - NEXT_PUBLIC_ORDER_URL=${NEXT_PUBLIC_ORDER_URL:-http://localhost:4001}
+
+      # Server configuration
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    networks:
+      - app-network
+    depends_on:
+      payment:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    env_file:
+      - .env
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+
+
