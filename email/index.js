@@ -18,7 +18,16 @@ app.use(cors());
  * Send email notification
  * Protected by service-to-service authentication
  */
-app.post('/send-email', authenticateService, (req,res)=>{
+
+const apiRouter = express.Router()
+apiRouter.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        service: 'Email Service',
+        timestamp: new Date().toISOString()
+    });
+});
+apiRouter.post('/send-email', authenticateService, (req,res)=>{
     const useId = "1234"
     const {cart,total,customerPhone}=req.body;
     const orderItems = cart.map(item=>`${item.name} - ${item.quantity} - ${item.price} MZN`).join('\n');
@@ -26,6 +35,10 @@ app.post('/send-email', authenticateService, (req,res)=>{
     res.status(200).json({message:'Email sent successfully'});
 });
 
+app.use('/api', apiRouter)
+
 app.listen(PORT,()=>{
     console.log(`Email server is running on port ${PORT}`);
+    console.log(`💚 Health check: GET /api/health\n`);
+    console.log(`📱 Send email: POST /api/send-email`);
 });

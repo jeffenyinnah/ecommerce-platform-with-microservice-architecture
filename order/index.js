@@ -11,8 +11,13 @@ const app = express();
 const PORT = 4001;
 
 // PostgreSQL connection pool
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+// db details
+const DATABASE_URL = process.env.DATABASE_URL
+const pool = new Pool({ 
+    connectionString: DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Use true in production with proper certificates
+    }
 });
 
 // Database initialization
@@ -67,7 +72,10 @@ app.use(cors());
  * Called by payment service after successful payment
  * Protected by service-to-service authentication
  */
-app.post('/orders', authenticateService, async (req, res) => {
+
+const apiRouter = express.Router()
+
+apiRouter.post('/orders', authenticateService, async (req, res) => {
     console.log('\n📦 New order received from payment service');
     
     const client = await pool.connect();
@@ -165,7 +173,7 @@ app.post('/orders', authenticateService, async (req, res) => {
  * Get all orders for the authenticated user
  * Protected by user authentication
  */
-app.get('/orders', authenticateToken, async (req, res) => {
+apiRouter.get('/orders', authenticateToken, async (req, res) => {
     console.log(`📋 Fetching orders for user ${req.user.userId}`);
     
     const client = await pool.connect();
@@ -211,7 +219,7 @@ app.get('/orders', authenticateToken, async (req, res) => {
  * Get order by ID
  * Protected by user authentication
  */
-app.get('/orders/:orderId', authenticateToken, async (req, res) => {
+apiRouter.get('/orders/:orderId', authenticateToken, async (req, res) => {
     const { orderId } = req.params;
     
     const client = await pool.connect();
@@ -264,7 +272,7 @@ app.get('/orders/:orderId', authenticateToken, async (req, res) => {
  * Get order by transaction ID
  * Protected by user authentication
  */
-app.get('/orders/transaction/:transactionId', authenticateToken, async (req, res) => {
+apiRouter.get('/orders/transaction/:transactionId', authenticateToken, async (req, res) => {
     const { transactionId } = req.params;
     
     const client = await pool.connect();
@@ -316,7 +324,7 @@ app.get('/orders/transaction/:transactionId', authenticateToken, async (req, res
 /**
  * Health check
  */
-app.get('/health', async (req, res) => {
+apiRouter.get('/health', async (req, res) => {
     try {
         // Check database connection
         const client = await pool.connect();
@@ -342,12 +350,16 @@ app.get('/health', async (req, res) => {
     }
 });
 
+app.use('/api', apiRouter)
 // ============================================================================
 // START SERVER
 // ============================================================================
 app.listen(PORT, () => {
     console.log('\n🚀 Order Service Started');
     console.log(`📦 Running on http://localhost:${PORT}`);
-    console.log(`💚 Health check: GET /health`);
+    console.log(`💚 Health check: GET /api/health`);
     console.log(`📋 List orders: GET /orders\n`);
+    console.log(`📋 List orders: GET /api/orders`);
+    console.log(`📋 List orders: GET /api/orders/:orderId`);
+    console.log(`📋 List orders: GET /api/orders/transaction/:transactionId`);
 });

@@ -195,10 +195,11 @@ async function processMpesaPayment(amount, phoneNumber, transactionRef, thirdPar
 // API ROUTES
 // ============================================================================
 
+const apiRouter = express.Router()
 /**
  * Health check endpoint
  */
-app.get('/health', (req, res) => {
+apiRouter.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         service: 'M-Pesa Payment Gateway',
@@ -210,7 +211,7 @@ app.get('/health', (req, res) => {
  * Payment processing endpoint
  * Protected by user authentication
  */
-app.post('/payment', authenticateToken, async (req, res) => {
+apiRouter.post('/payment', authenticateToken, async (req, res) => {
     // ⏱️ Start timing
     const startTime = Date.now();
     const timings = {};
@@ -330,11 +331,12 @@ app.post('/payment', authenticateToken, async (req, res) => {
     }
 });
 
+app.use('/api', apiRouter)
 // ============================================================================
 // START SERVER
 // ============================================================================
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📱 M-Pesa endpoint: POST /payment`);
-    console.log(`💚 Health check: GET /health\n`);
+    console.log(`📱 M-Pesa endpoint: POST /api/payment`);
+    console.log(`💚 Health check: GET /api/health\n`);
 });
