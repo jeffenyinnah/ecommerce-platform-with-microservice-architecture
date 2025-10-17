@@ -10,7 +10,7 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: sample-client
   ECS_SERVICE: sample-client-service
-  ECS_CLUSTER: sample-production-cluster
+  ECS_CLUSTER: sample-production-cluster-test
   CONTAINER_NAME: client-container
 
 jobs:
