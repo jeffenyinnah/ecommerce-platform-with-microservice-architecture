@@ -1,4 +1,4 @@
-name: Deploy Client Service
+name: Deploy Client Service Test
 
 on:
   push:
