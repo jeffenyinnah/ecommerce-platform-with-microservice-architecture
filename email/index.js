@@ -35,6 +35,15 @@ apiRouter.post('/send-email', authenticateService, (req,res)=>{
     res.status(200).json({message:'Email sent successfully'});
 });
 
+
+apiRouter.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        service: 'Email Service',
+        timestamp: new Date().toISOString(),
+        message: 'Email Service is running successfully',
+    })
+});
 app.use('/api', apiRouter)
 
 app.listen(PORT,()=>{
