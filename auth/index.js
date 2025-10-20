@@ -17,7 +17,9 @@ app.use(express.json());
 const DATABASE_URL = process.env.DATABASE_URL
 const pool = new Pool({ 
     connectionString: DATABASE_URL,
-    ssl: false // Disable SSL for local development
+    ssl: {
+        rejectUnauthorized: false
+    } // Disable SSL for local developmen
 });
 
 // create db
