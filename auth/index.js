@@ -17,9 +17,7 @@ app.use(express.json());
 const DATABASE_URL = process.env.DATABASE_URL
 const pool = new Pool({ 
     connectionString: DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false // Use true in production with proper certificates
-    }
+    ssl: false // Disable SSL for local development
 });
 
 // create db
@@ -181,13 +179,13 @@ apiRouter.get('/health', (req, res) => {
     });
 });
 
-app.use('/api', apiRouter)
+app.use('/api/auth', apiRouter)
 // port
 app.listen(PORT,()=>{
     console.log(`Auth service is running on port ${PORT}`);
-    console.log(`💚 Health check: GET /api/health\n`);
-    console.log(`📱 Register: POST /api/register`);
-    console.log(`📱 Login: POST /api/login`);
-    console.log(`📱 Refresh token: POST /api/refresh-token`);
-    console.log(`📱 Logout: POST /api/logout`);
+    console.log(`💚 Health check: GET /api/auth/health\n`);
+    console.log(`📱 Register: POST /api/auth/register`);
+    console.log(`📱 Login: POST /api/auth/login`);
+    console.log(`📱 Refresh token: POST /api/auth/refresh-token`);
+    console.log(`📱 Logout: POST /api/auth/logout`);
 })

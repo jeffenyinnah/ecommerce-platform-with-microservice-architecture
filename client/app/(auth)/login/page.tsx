@@ -2,6 +2,9 @@
 import React, {useState} from 'react'
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { login, saveTokens } from '@/lib/api';
+
+// const 
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -16,31 +19,24 @@ export default function LoginPage() {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch('http://localhost:4003/login', {
-                method: 'POST',
-                headers:{
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            })
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed');
-            }
-            const data = await response.json();
-            localStorage.setItem('accessToken', data.data.accessToken);
-            localStorage.setItem('refreshToken', data.data.refreshToken);
-            localStorage.setItem('userEmail', email); // Save user email for display
+            const result = await login({ email, password });
+            if (result.success && result.data) {
+                saveTokens(result.data.accessToken, result.data.refreshToken);
+                localStorage.setItem('userEmail', email); // Save user email for display
 
-            setSuccess('Login successful. Redirecting to home...');
-            setEmail('');
-            setPassword('');
-            setLoading(false);
-            router.push('/');
+                setSuccess('Login successful. Redirecting to home...');
+                setEmail('');
+                setPassword('');
+                setLoading(false);
+                router.push('/');
+            } else {
+                throw new Error(result.message || 'Login failed');
+            }
         }
         catch (error) {
             console.error('Login error:', error);
             setError('Login failed. Please try again.');
+            setLoading(false);
         }
     }
 

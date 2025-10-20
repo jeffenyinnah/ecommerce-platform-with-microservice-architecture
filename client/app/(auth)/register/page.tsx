@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 import { Mail, Lock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { register } from '@/lib/api';
 
 
 export default function RegisterPage() {
@@ -19,28 +20,22 @@ export default function RegisterPage() {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch('http://localhost:4003/register', {
-                method: 'POST',
-                headers:{
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            })
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Registration failed');
+            const result = await register({ email, password });
+            if (result.success) {
+                setSuccess('Registration successful. Please login.');
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                setLoading(false);
+                router.push('/login');
+            } else {
+                throw new Error(result.message || 'Registration failed');
             }
-            await response.json();
-            setSuccess('Registration successful. Please login.');
-            setEmail('');
-            setPassword('');
-            setConfirmPassword('');
-            setLoading(false);
-            router.push('/login');
         }
         catch (error) {
             console.error('Registration error:', error);
             setError('Registration failed. Please try again.');
+            setLoading(false);
         } 
     }
     

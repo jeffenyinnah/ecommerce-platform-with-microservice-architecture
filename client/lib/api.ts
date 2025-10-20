@@ -37,7 +37,7 @@ export interface RefreshTokenRequest {
  * Register a new user
  */
 export async function register(request: RegisterRequest): Promise<AuthResponse> {
-  const response = await fetch(`${AUTH_API_URL}/api/register`, {
+  const response = await fetch(`${AUTH_API_URL}/api/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export async function register(request: RegisterRequest): Promise<AuthResponse> 
  * Login user
  */
 export async function login(request: LoginRequest): Promise<AuthResponse> {
-  const response = await fetch(`${AUTH_API_URL}/api/login`, {
+  const response = await fetch(`${AUTH_API_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
  * Refresh access token
  */
 export async function refreshToken(request: RefreshTokenRequest): Promise<AuthResponse> {
-  const response = await fetch(`${AUTH_API_URL}/api/refresh-token`, {
+  const response = await fetch(`${AUTH_API_URL}/api/auth/refresh-token`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export async function refreshToken(request: RefreshTokenRequest): Promise<AuthRe
  * Logout user
  */
 export async function logout(refreshToken: string): Promise<{ success: boolean; message: string }> {
-  const response = await fetch(`${AUTH_API_URL}/api/logout`, {
+  const response = await fetch(`${AUTH_API_URL}/api/auth/logout`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export async function processPayment(request: PaymentRequest): Promise<PaymentRe
     throw new Error('Authentication required. Please login first.');
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/payment`, {
+  const response = await fetch(`${API_BASE_URL}/api/payment/pay`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ export async function processPayment(request: PaymentRequest): Promise<PaymentRe
       const newAccessToken = await handleTokenRefresh();
       if (newAccessToken) {
         // Retry with new token
-        const retryResponse = await fetch(`${API_BASE_URL}/api/payment`, {
+        const retryResponse = await fetch(`${API_BASE_URL}/api/pay`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -249,7 +249,7 @@ async function handleTokenRefresh(): Promise<string | null> {
  * Check API health
  */
 export async function checkHealth() {
-  const response = await fetch(`${API_BASE_URL}/api/health`);
+  const response = await fetch(`${API_BASE_URL}/api/payment/health`);
   return response.json();
 }
 
@@ -293,7 +293,7 @@ export async function getOrders(): Promise<OrdersResponse> {
     throw new Error('Authentication required. Please login first.');
   }
 
-  const response = await fetch(`${ORDER_API_URL}/api/orders`, {
+  const response = await fetch(`${ORDER_API_URL}/api/order/orders`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -327,7 +327,7 @@ export async function getOrderById(orderId: string): Promise<OrderResponse> {
     throw new Error('Authentication required. Please login first.');
   }
 
-  const response = await fetch(`${ORDER_API_URL}/api/orders/${orderId}`, {
+  const response = await fetch(`${ORDER_API_URL}/api/order/orders/${orderId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`,

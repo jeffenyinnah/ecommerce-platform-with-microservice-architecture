@@ -44,7 +44,7 @@ apiRouter.get('/health', (req, res) => {
         message: 'Email Service is running successfully',
     })
 });
-app.use('/api', apiRouter)
+app.use('/api/email', apiRouter)
 
 app.listen(PORT,()=>{
     console.log(`Email server is running on port ${PORT}`);

@@ -80,7 +80,7 @@ async function createOrder(orderData) {
     try {
         console.log('📦 Sending order to order service...');
         
-        const response = await axios.post(`${ORDER_SERVICE_URL}/orders`, orderData, {
+        const response = await axios.post(`${ORDER_SERVICE_URL}/api/order/orders`, orderData, {
             headers: {
                 'x-api-key': process.env.SERVICE_API_KEY // Service-to-service authentication
             },
@@ -113,7 +113,7 @@ async function sendEmail(cart, total, customerPhone) {
     try {
         console.log('📧 Sending email notification...');
         
-        const response = await axios.post(`${EMAIL_SERVICE_URL}/send-email`, {
+        const response = await axios.post(`${EMAIL_SERVICE_URL}/api/email/send-email`, {
             cart,
             total,
             customerPhone
@@ -211,7 +211,7 @@ apiRouter.get('/health', (req, res) => {
  * Payment processing endpoint
  * Protected by user authentication
  */
-apiRouter.post('/payment', authenticateToken, async (req, res) => {
+apiRouter.post('/pay', authenticateToken, async (req, res) => {
     // ⏱️ Start timing
     const startTime = Date.now();
     const timings = {};
@@ -331,12 +331,12 @@ apiRouter.post('/payment', authenticateToken, async (req, res) => {
     }
 });
 
-app.use('/api', apiRouter)
+app.use('/api/payment', apiRouter)
 // ============================================================================
 // START SERVER
 // ============================================================================
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📱 M-Pesa endpoint: POST /api/payment`);
+    console.log(`📱 M-Pesa endpoint: POST /api/pay`);
     console.log(`💚 Health check: GET /api/health\n`);
 });
