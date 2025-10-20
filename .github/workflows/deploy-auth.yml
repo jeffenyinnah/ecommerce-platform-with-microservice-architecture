@@ -9,7 +9,7 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: sample-auth
-  ECS_SERVICE: sample-auth-service
+  ECS_SERVICE: sample-auth-service1
   ECS_CLUSTER: sample-production-cluster-test
   CONTAINER_NAME: auth-container
 
