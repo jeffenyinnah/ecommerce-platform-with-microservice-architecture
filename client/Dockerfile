@@ -21,9 +21,17 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy application files
 COPY . .
 
+# Accept build arguments
+ARG NEXT_PUBLIC_AUTH_URL
+ARG NEXT_PUBLIC_PAYMENT_URL
+ARG NEXT_PUBLIC_ORDER_URL
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_AUTH_URL=$NEXT_PUBLIC_AUTH_URL
+ENV NEXT_PUBLIC_PAYMENT_URL=$NEXT_PUBLIC_PAYMENT_URL
+ENV NEXT_PUBLIC_ORDER_URL=$NEXT_PUBLIC_ORDER_URL
 
 # Build the Next.js application
 RUN npm run build
